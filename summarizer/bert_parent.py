@@ -85,13 +85,13 @@ class BertParent(object):
         if -1 > hidden > -12:
 
             if reduce_option == 'max':
-                pooled = hidden_states[hidden].max(dim=1)[0]
+                pooled = pooled.max(dim=1)[0]
 
             elif reduce_option == 'median':
-                pooled = hidden_states[hidden].median(dim=1)[0]
+                pooled = pooled.median(dim=1)[0]
 
             else:
-                pooled = hidden_states[hidden].mean(dim=1)
+                pooled = pooled.mean(dim=1)
 
         if squeeze:
             return pooled.detach().numpy().squeeze()

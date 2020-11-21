@@ -1,27 +1,15 @@
-# Bert Extractive Summarizer
+# AraBert Extractive Summarizer
 
-This repo is the generalization of the lecture-summarizer repo. This tool utilizes the HuggingFace Pytorch transformers library
+This repo is forked from Bert Extractive Summarizer repo. This tool utilizes the HuggingFace Pytorch transformers library
 to run extractive summarizations. This works by first embedding the sentences, then running a clustering algorithm, finding 
-the sentences that are closest to the cluster's centroids. This library also uses coreference techniques, utilizing the 
-https://github.com/huggingface/neuralcoref library to resolve words in summaries that need more context. The greedyness of 
-the neuralcoref library can be tweaked in the SingleModel class.
+the sentences that are closest to the cluster's centroids.
 
-Paper: https://arxiv.org/abs/1906.04165
-
-### Try the Online Demo:
-
-[Distill Bert Summarization Demo](https://smrzr.io)
+Paper: http://dstore.alazhar.edu.ps/xmlui/handle/123456789/633
 
 ## Install
 
 ```bash
-pip install bert-extractive-summarizer
-```
-
-#### NOTE: If you are using coreference, you will need spacy 2.1.3 installed. There is currently an issue with Spacy 2.1.4 that produces segmentation faults. 
-```bash
-pip install spacy
-pip install transformers==2.2.0
+ pip3 install -r requirements.txt
 ```
 
 ## How to Use
@@ -29,152 +17,41 @@ pip install transformers==2.2.0
 #### Simple Example
 ```python
 from summarizer import Summarizer
+from transformers import AutoTokenizer, AutoModel
+from rouge import Rouge
 
-body = 'Text body that you want to summarize with BERT'
-body2 = 'Something else you want to summarize with BERT'
-model = Summarizer()
-model(body)
-model(body2)
+body='''
+أعلن اليوم الخميس في ماليزيا عن دخول ملك البلاد في حجر صحي بعد إصابة 7 عاملين في القصر بفيروس كورونا، ليكون بذلك أحدث زعماء العالم التحاقا بقائمة القادة الذين تحوم حولهم شبهة الإصابة بهذا الفيروس.
+وقال مشرف القصر الوطني في ماليزيا أحمد فاضل شمس الدين اليوم إن الملك السلطان عبد الله رعاية الدين المصطفى بالله شاه والملكة الحاجة عزيزة أمينة ميمونة الإسكندرية قد خضعا لفحص طبي واختبار تشخيصي للفيروس، حيث جاءت نتائج تحاليلهما سلبية.
+وقال إن الملك والملكة يخضعان حاليا للحجر الصحي في القصر، ولن يقبلا أي زيارة أو مقابلة رسمية إلى أن تنتهي فترة الحجر الصحي التي بدأت أمس ومن المقرر أن تستمر لمدة 14 يوما.
+ويوم أمس الأربعاء، أعلن مقر إقامة ولي العهد البريطاني الأمير تشارلز إصابة الأمير بفيروس كورونا.
+وقال متحدث باسم مقر إقامة الأمير تشارلز ثبتت إصابة الأمير تشارلز بفيروس كورونا، لقد ظهرت عليه أعراض طفيفة لكن صحته جيدة، وكان يعمل من البيت طوال الأيام الماضية كالمعتاد.
+'''
+albert_model = AutoModel.from_pretrained('asafaya/bert-base-arabic')
+albert_tokenizer = AutoTokenizer.from_pretrained('asafaya/bert-base-arabic')
+
+modelSummarizer = Summarizer(custom_model=albert_model, custom_tokenizer=albert_tokenizer)
+result = modelSummarizer(body)
+generated_summary = ''.join(result)
+print(generated_summary)
+
 ```
 
-#### Large Example
+### Evaluation Using ROUGE
 
 ```python
-from summarizer import Summarizer
 
-body = '''
-The Chrysler Building, the famous art deco New York skyscraper, will be sold for a small fraction of its previous sales price.
-The deal, first reported by The Real Deal, was for $150 million, according to a source familiar with the deal.
-Mubadala, an Abu Dhabi investment fund, purchased 90% of the building for $800 million in 2008.
-Real estate firm Tishman Speyer had owned the other 10%.
-The buyer is RFR Holding, a New York real estate company.
-Officials with Tishman and RFR did not immediately respond to a request for comments.
-It's unclear when the deal will close.
-The building sold fairly quickly after being publicly placed on the market only two months ago.
-The sale was handled by CBRE Group.
-The incentive to sell the building at such a huge loss was due to the soaring rent the owners pay to Cooper Union, a New York college, for the land under the building.
-The rent is rising from $7.75 million last year to $32.5 million this year to $41 million in 2028.
-Meantime, rents in the building itself are not rising nearly that fast.
-While the building is an iconic landmark in the New York skyline, it is competing against newer office towers with large floor-to-ceiling windows and all the modern amenities.
-Still the building is among the best known in the city, even to people who have never been to New York.
-It is famous for its triangle-shaped, vaulted windows worked into the stylized crown, along with its distinctive eagle gargoyles near the top.
-It has been featured prominently in many films, including Men in Black 3, Spider-Man, Armageddon, Two Weeks Notice and Independence Day.
-The previous sale took place just before the 2008 financial meltdown led to a plunge in real estate prices.
-Still there have been a number of high profile skyscrapers purchased for top dollar in recent years, including the Waldorf Astoria hotel, which Chinese firm Anbang Insurance purchased in 2016 for nearly $2 billion, and the Willis Tower in Chicago, which was formerly known as Sears Tower, once the world's tallest.
-Blackstone Group (BX) bought it for $1.3 billion 2015.
-The Chrysler Building was the headquarters of the American automaker until 1953, but it was named for and owned by Chrysler chief Walter Chrysler, not the company itself.
-Walter Chrysler had set out to build the tallest building in the world, a competition at that time with another Manhattan skyscraper under construction at 40 Wall Street at the south end of Manhattan. He kept secret the plans for the spire that would grace the top of the building, building it inside the structure and out of view of the public until 40 Wall Street was complete.
-Once the competitor could rise no higher, the spire of the Chrysler building was raised into view, giving it the title.
+summary_evaluation = '''
+أعلن اليوم الخميس في ماليزيا عن دخول ملك البلاد في حجر صحي بعد إصابة 7 عاملين في القصر بفيروس كورونا، ليكون بذلك أحدث زعماء العالم التحاقا بقائمة القادة الذين تحوم حولهم شبهة الإصابة بهذا الفيروس.
+ويوم أمس الأربعاء، أعلن مقر إقامة ولي العهد البريطاني الأمير تشارلز إصابة الأمير بفيروس كورونا.
+ومساء الأحد الماضي، أعلن في ألمانيا عن الاشتباه في إصابة المستشارة الألمانية أنجيلا ميركل بفيروس، وخضوعها لحجر منزلي رغم أن نتائج الفحوص التي أجرتها كانت سلبية، ومع ذلك قررت الخضوع للحجر الصحي والبقاء في المنزل.
+في دوائر السلطة وقصور الحكم وخلال الأسابيع الماضية ومع اتساع دائرة العدوى وعدد الإصابات بفيروس كورونا في عدة دول ومناطق عبر العالم، بدأ الفيروس تدريجيا يقترب من مراكز اتخاذ القرار، وربما يعرض حياة قادة ومسؤولين كبار للخطر.
+ولاحقا، أعلنت السلطات البرازيلية أن الوزير الذي التقى ترامب مصاب بالفيروس، كما وضع الرئيس جايير بولسونارو تحت المراقبة الصحية للتأكد من عدم إصابته.
 '''
 
-model = Summarizer()
-result = model(body, min_length=60)
-full = ''.join(result)
-print(full)
-"""
-The Chrysler Building, the famous art deco New York skyscraper, will be sold for a small fraction of its previous sales price. 
-The building sold fairly quickly after being publicly placed on the market only two months ago.
-The incentive to sell the building at such a huge loss was due to the soaring rent the owners pay to Cooper Union, a New York college, for the land under the building.'
-Still the building is among the best known in the city, even to people who have never been to New York.
-"""
+rouge = Rouge()
+scores = rouge.get_scores(generated_summary, summary_evaluation)
+print(scores)
 ```
-
-## Summarizer Options
-
-```
-model = Summarizer(
-    model: str #This gets used by the hugging face bert library to load the model, you can supply a custom trained model here
-    hidden: int # Needs to be negative, but allows you to pick which layer you want the embeddings to come from.
-    custom_model: Custom model can be supplied here,
-    custom_tokenizer: Custom tokenizer can be supplied here,
-    reduce_option: str # It can be 'mean', 'median', or 'max'. This reduces the embedding layer for pooling.
-    greedyness: float # number between 0 and 1. It is used for the coreference model. Anywhere from 0.35 to 0.45 seems to work well.
-)
-
-model(
-    body: str # The string body that you want to summarize
-    ratio: float # The ratio of sentences that you want for the final summary
-    min_length: int # Parameter to specify to remove sentences that are less than 40 characters
-    max_length: int # Parameter to specify to remove sentences greater than the max length
-)
-```
-
-## Running the Service
-
-There is a provided flask service and corresponding Dockerfile. Running the service is simple, and can be done though 
-the Makefile with the two commands:
-
-```
-make docker-service-build
-make docker-service-run
-```
-
-This will use the Bert-base-uncased model, which has a small representation. The docker run also accepts a variety of 
-arguments for custom and different models. This can be done through a command such as:
-
-```
-docker build -t summary-service -f Dockerfile.service ./
-docker run --rm -it -p 5000:5000 summary-service:latest -model bert-large-uncased
-```
-
-Other arguments can also be passed to the server. Below includes the list of available arguments.
-
-* -greediness: Float parameter that determines how greedy nueralcoref should be
-* -reduce: Determines the reduction statistic of the encoding layer (mean, median, max).
-* -hidden: Determines the hidden layer to use for embeddings (default is -2)
-* -port: Determines the port to use.
-* -host: Determines the host to use.
-
-Once the service is running, you can make a summarization command at the `http://localhost:5000/summarize` endpoint. 
-This endpoint accepts a text/plain input which represents the text that you want to summarize. Parameters can also be 
-passed as request arguments. The accepted arguments are:
-
-* ratio: Ratio of sentences to summarize to from the original body. (default to 0.2)
-* min_length: The minimum length to accept as a sentence. (default to 25)
-* max_length: The maximum length to accept as a sentence. (default to 500)
-
-An example of a request is the following:
-
-```
-POST http://localhost:5000/summarize?ratio=0.1
-
-Content-type: text/plain
-
-Body:
-The Chrysler Building, the famous art deco New York skyscraper, will be sold for a small fraction of its previous sales price.
-The deal, first reported by The Real Deal, was for $150 million, according to a source familiar with the deal.
-Mubadala, an Abu Dhabi investment fund, purchased 90% of the building for $800 million in 2008.
-Real estate firm Tishman Speyer had owned the other 10%.
-The buyer is RFR Holding, a New York real estate company.
-Officials with Tishman and RFR did not immediately respond to a request for comments.
-It's unclear when the deal will close.
-The building sold fairly quickly after being publicly placed on the market only two months ago.
-The sale was handled by CBRE Group.
-The incentive to sell the building at such a huge loss was due to the soaring rent the owners pay to Cooper Union, a New York college, for the land under the building.
-The rent is rising from $7.75 million last year to $32.5 million this year to $41 million in 2028.
-Meantime, rents in the building itself are not rising nearly that fast.
-While the building is an iconic landmark in the New York skyline, it is competing against newer office towers with large floor-to-ceiling windows and all the modern amenities.
-Still the building is among the best known in the city, even to people who have never been to New York.
-It is famous for its triangle-shaped, vaulted windows worked into the stylized crown, along with its distinctive eagle gargoyles near the top.
-It has been featured prominently in many films, including Men in Black 3, Spider-Man, Armageddon, Two Weeks Notice and Independence Day.
-The previous sale took place just before the 2008 financial meltdown led to a plunge in real estate prices.
-Still there have been a number of high profile skyscrapers purchased for top dollar in recent years, including the Waldorf Astoria hotel, which Chinese firm Anbang Insurance purchased in 2016 for nearly $2 billion, and the Willis Tower in Chicago, which was formerly known as Sears Tower, once the world's tallest.
-Blackstone Group (BX) bought it for $1.3 billion 2015.
-The Chrysler Building was the headquarters of the American automaker until 1953, but it was named for and owned by Chrysler chief Walter Chrysler, not the company itself.
-Walter Chrysler had set out to build the tallest building in the world, a competition at that time with another Manhattan skyscraper under construction at 40 Wall Street at the south end of Manhattan. He kept secret the plans for the spire that would grace the top of the building, building it inside the structure and out of view of the public until 40 Wall Street was complete.
-Once the competitor could rise no higher, the spire of the Chrysler building was raised into view, giving it the title.
-
-Response:
-
-{
-    "summary": "The Chrysler Building, the famous art deco New York skyscraper, will be sold for a small fraction of its previous sales price. The buyer is RFR Holding, a New York real estate company. The incentive to sell the building at such a huge loss was due to the soaring rent the owners pay to Cooper Union, a New York college, for the land under the building."
-}
-```
-
-### Deploy through Cortex
-
-The summarization library can also be deployed through Cortex. An example can be seen in the link below.
-
-https://github.com/cortexlabs/cortex/tree/master/examples/pytorch/text-summarizer
 
 

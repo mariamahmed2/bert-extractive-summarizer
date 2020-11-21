@@ -1,10 +1,12 @@
 numpy==1.16.3
-torch==1.0.1
-spacy
+torch~=1.4.0
+spacy~=2.2.4
 transformers==2.2.2
 Cython==0.29.10
 tqdm==4.32.2
 neuralcoref==4.0
-argparse
-scikit-learn
-pytest
+argparse~=1.4.0
+scikit-learn~=0.22.2.post1
+pytest~=5.4.1
+setuptools~=41.2.0
+rouge~=1.0.0
